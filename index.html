@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technical Mathematics | PDF Library</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:0 20px;color:#243047;background:#f7f9fc}
+h1{margin-bottom:5px}
+.subtitle{color:#64748b;margin-bottom:25px}
+input{box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;margin-bottom:20px}
+.item{background:white;border:1px solid #e2e8f0;border-radius:10px;padding:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.name{font-weight:bold;overflow-wrap:anywhere}
+.actions{display:flex;gap:8px}
+button,a.btn{border:1px solid #2563eb;border-radius:7px;padding:9px 12px;background:white;color:#2563eb;cursor:pointer;text-decoration:none;font-size:14px}
+button:hover,a.btn:hover{background:#eff6ff}
+#status{color:#64748b}
+</style>
+</head>
+<body>
+<h1>Technical Mathematics</h1>
+<p class="subtitle">PDF Resource Library · Exam Papers · Mark Schemes · Practice Materials</p>
+<input id="search" placeholder="Search PDF files..." aria-label="Search PDF files">
+<p id="status">Loading PDF files...</p>
+<div id="files"></div>
+<script>
+const owner="wingwing73258-alt";
+const repo="Technical-Maths";
+let allFiles=[];
+async function getPDFs(path=""){
+ const api="https://api.github.com/repos/"+owner+"/"+repo+"/contents/"+path+"?ref=main";
+ const response=await fetch(api);
+ if(!response.ok)throw new Error("GitHub API error: "+response.status);
+ const entries=await response.json();
+ let files=[];
+ for(const entry of entries){
+  if(entry.type==="file" && entry.name.toLowerCase().endsWith(".pdf"))files.push(entry.path);
+  if(entry.type==="dir")files.push(...await getPDFs(entry.path));
+ }
+ return files;
+}
+function render(){
+ const container=document.getElementById("files");
+ const q=document.getElementById("search").value.toLowerCase();
+ const filtered=allFiles.filter(f=>f.toLowerCase().includes(q));
+ container.replaceChildren();
+ document.getElementById("status").textContent=filtered.length+" PDF file(s)";
+ for(const path of filtered){
+  const url="https://"+owner+".github.io/"+repo+"/"+path.split("/").map(encodeURIComponent).join("/");
+  const item=document.createElement("div");
+  item.className="item";
+  const name=document.createElement("span");
+  name.className="name";
+  name.textContent="📄 "+path;
+  const actions=document.createElement("div");
+  actions.className="actions";
+  const link=document.createElement("a");
+  link.className="btn";
+  link.href=url;
+  link.target="_blank";
+  link.rel="noopener noreferrer";
+  link.textContent="Open PDF";
+  const copy=document.createElement("button");
+  copy.textContent="Copy Link";
+  copy.onclick=async()=>{
+   try{
+    await navigator.clipboard.writeText(url);
+    copy.textContent="Copied!";
+    setTimeout(()=>copy.textContent="Copy Link",1500);
+   }catch(e){window.prompt("Copy this link:",url)}
+  };
+  actions.append(link,copy);
+  item.append(name,actions);
+  container.append(item);
+ }
+}
+document.getElementById("search").addEventListener("input",render);
+getPDFs().then(files=>{
+ allFiles=files.sort((a,b)=>a.localeCompare(b));
+ render();
+}).catch(error=>{
+ document.getElementById("status").textContent="Unable to load PDFs. Please refresh or check the repository.";
+ console.error(error);
+});
+</script>
+</body>
+</html>
