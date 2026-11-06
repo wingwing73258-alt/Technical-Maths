@@ -46,7 +46,7 @@ function render(){
  container.replaceChildren();
  document.getElementById("status").textContent=filtered.length+" PDF file(s)";
  for(const path of filtered){
-  const url="https://"+owner+".github.io/"+repo+"/"+path.split("/").map(encodeURIComponent).join("/");
+  const url="https://technical-maths.pages.dev/"+path.split("/").map(encodeURIComponent).join("/");
   const item=document.createElement("div");
   item.className="item";
   const name=document.createElement("span");
